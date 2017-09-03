@@ -1,7 +1,8 @@
-var webpack = require('webpack')
-var ExtractTextPlugin = require("extract-text-webpack-plugin")
-var StatsPlugin = require("stats-webpack-plugin")
-var loadersByExtension = require("./loaders-by-extension")
+const webpack = require('webpack')
+const ExtractTextPlugin = require("extract-text-webpack-plugin")
+const StatsPlugin = require("stats-webpack-plugin")
+
+const loadersByExtension = require("./loaders-by-extension")
 
 module.exports = function(globalConfig) {
     const { options } = globalConfig

@@ -16,6 +16,7 @@
     "url": "https://github.com/xmhscratch/solais-server-static/issues"
   },
   "homepage": "https://github.com/xmhscratch/solais-server-static#readme",
+  "devDependencies": {},
   "dependencies": {
     "babel-cli": "^6.26.0",
     "babel-core": "^6.26.0",

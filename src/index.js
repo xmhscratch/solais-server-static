@@ -74,7 +74,7 @@ class Server extends System.Module {
 
         globalConfig.options = config('webpack.options', {
             entry: {
-                index: ['webpack-hot-middleware/client?reload=true', './index.js']
+                hotMiddleware: 'webpack-hot-middleware/client?reload=true'
             },
             devtool: "eval",
             module: { rules: [] },

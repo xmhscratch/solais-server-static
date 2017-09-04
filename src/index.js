@@ -185,14 +185,14 @@ class Server extends System.Module {
     }
 
     getAssetPath() {
-        return __(
+        return fs(
             this.basePath,
             ASSET_PATH_NAME
         ).root
     }
 
     getBuildPath() {
-        return __(
+        return fs(
             this.basePath,
             BUILD_PATH_NAME
         ).root

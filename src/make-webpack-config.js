@@ -28,7 +28,7 @@ module.exports = function(globalConfig) {
 
     var additionalLoaders = []
     var alias = {
-        system: __('./asset/index.js').root,
+        system: fs('./asset/index.js').root,
     }
     var aliasLoader = {}
     var externals = []
@@ -36,7 +36,7 @@ module.exports = function(globalConfig) {
     var modulesDirectories = ["node_modules"]
     var extensions = [".js"]
     var output = {
-        path: __('./public').root,
+        path: fs('./public').root,
         publicPath: globalConfig.baseUrl ? globalConfig.baseUrl : "/",
         filename: "[name].js" + (globalConfig.longTermCaching ? "?[chunkhash]" : ""),
         chunkFilename: (options.devServer ? "[id].js" : "[name].js") + (globalConfig.longTermCaching ? "?[chunkhash]" : ""),
@@ -48,7 +48,7 @@ module.exports = function(globalConfig) {
     var excludeFromStats = []
     var plugins = []
 
-    // plugins.push(new StatsPlugin(__('./public/stats.json').root, {
+    // plugins.push(new StatsPlugin(fs('./public/stats.json').root, {
     //     chunkModules: true,
     //     exclude: excludeFromStats
     // }))
@@ -104,7 +104,7 @@ module.exports = function(globalConfig) {
     }
 
     return _.defaultsDeep({
-        context: __('./asset').root,
+        context: fs('./asset').root,
         entry: _.extend(entry, (options.entry || [])),
         output: output,
         target: "web",
@@ -119,7 +119,7 @@ module.exports = function(globalConfig) {
         resolveLoader: options.resolveLoader || {},
         externals: externals.concat(options.externals || []),
         resolve: {
-            modules: _.concat([__('./asset').root], modulesDirectories),
+            modules: _.concat([fs('./asset').root], modulesDirectories),
             extensions: extensions.concat(options.resolve.extensions || []),
             alias: _.extend(alias, options.resolve.alias || {})
         },

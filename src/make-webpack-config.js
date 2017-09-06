@@ -1,11 +1,12 @@
 const webpack = require('webpack')
 const ExtractTextPlugin = require("extract-text-webpack-plugin")
 const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer')
+const DashboardPlugin = require('webpack-dashboard/plugin')
 
 const loadersByExtension = require("./loaders-by-extension")
 
 module.exports = function(globalConfig) {
-    const { options } = globalConfig
+    const options = globalConfig.browser
 
     var entry = {}
     var rules = {
@@ -49,16 +50,17 @@ module.exports = function(globalConfig) {
     var plugins = []
 
     plugins.push(
+        new DashboardPlugin(),
         new BundleAnalyzerPlugin({
             // Can be `server`, `static` or `disabled`.
             // In `server` mode analyzer will start HTTP server to show bundle report.
             // In `static` mode single HTML file with bundle report will be generated.
             // In `disabled` mode you can use this plugin to just generate Webpack Stats JSON file by setting `generateStatsFile` to `true`.
-            analyzerMode: 'disabled',
+            analyzerMode: 'server',
             // // Host that will be used in `server` mode to start HTTP server.
-            // analyzerHost: '127.0.0.1',
+            analyzerHost: globalConfig.hostname,
             // // Port that will be used in `server` mode to start HTTP server.
-            // analyzerPort: 8888,
+            analyzerPort: globalConfig.port + 1,
             // Path to bundle report file that will be generated in `static` mode.
             // Relative to bundles output directory.
             // reportFilename: 'report.html',
@@ -67,7 +69,7 @@ module.exports = function(globalConfig) {
             // See "Definitions" section for more information.
             // defaultSizes: 'parsed',
             // Automatically open report in default browser
-            // openAnalyzer: true,
+            openAnalyzer: false,
             // If `true`, Webpack Stats JSON file will be generated in bundles output directory
             generateStatsFile: false,
             // Name of Webpack Stats JSON file that will be generated if `generateStatsFile` is `true`.
@@ -81,13 +83,6 @@ module.exports = function(globalConfig) {
             logLevel: 'info'
         })
     )
-
-    if (globalConfig.debug) {
-        plugins.push(new webpack.LoaderOptionsPlugin({
-            minimize: globalConfig.minimize,
-            debug: globalConfig.debug
-        }))
-    }
 
     if (globalConfig.commonsChunk) {
         plugins.push(new webpack.optimize.CommonsChunkPlugin("commons", "commons.js" + (globalConfig.longTermCaching ? "?[chunkhash]" : "")))
@@ -132,6 +127,16 @@ module.exports = function(globalConfig) {
         )
     }
 
+    if (globalConfig.debug) {
+        plugins.push(
+            new webpack.LoaderOptionsPlugin({
+                minimize: globalConfig.minimize,
+                debug: globalConfig.debug
+            }),
+            new webpack.HotModuleReplacementPlugin()
+        )
+    }
+
     return _.defaultsDeep({
         context: fs('./asset').root,
         entry: _.extend(entry, (options.entry || {})),
@@ -154,9 +159,29 @@ module.exports = function(globalConfig) {
         },
         plugins: plugins.concat(options.plugins || []),
         devServer: _.extend({
+            host: globalConfig.hostname,
+            port: globalConfig.port,
+            contentBase: fs('./asset').root,
+            hot: false,
+            historyApiFallback: false,
+            inline: true,
+            quiet: false,
+            noInfo: false,
+            lazy: true,
+            filename: 'main.js',
+            watchOptions: {
+                aggregateTimeout: 300,
+                poll: 1000
+            },
+            publicPath: output.publicPath,
             stats: {
                 cached: false,
                 exclude: excludeFromStats
+            },
+            headers: {
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, PATCH, OPTIONS",
+                "Access-Control-Allow-Headers": "X-Requested-With, content-type, Authorization"
             }
         }, (options.devServer || {}))
     }, options)

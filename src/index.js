@@ -32,15 +32,15 @@ class Server extends System.Module {
     }
 
     static get WebpackDevServer() {
-        return require("webpack-dev-server")
+        return require('webpack-dev-server')
     }
 
     static get WebpackHotMiddleware() {
-        return require("webpack-hot-middleware")
+        return require('webpack-hot-middleware')
     }
 
     static get WebpackDevMiddleware() {
-        return require("webpack-dev-middleware")
+        return require('webpack-dev-middleware')
     }
 
     get compiler() {
@@ -67,25 +67,56 @@ class Server extends System.Module {
     }
 
     setup(done) {
-        const globalConfig = config('webpack', {
+        const defaultConfig = {
+            baseUrl: `http://${DEFAULT_WEBPACK_HOSTNAME}:${DEFAULT_WEBPACK_PORT}/`,
             hostname: DEFAULT_WEBPACK_HOSTNAME,
-            port: DEFAULT_WEBPACK_PORT
-        })
+            port: DEFAULT_WEBPACK_PORT,
+            debug: true,
+            minimize: false,
+            browser: {
+                entry: {
+                    hotMiddleware: [
+                        'webpack-hot-middleware/client?reload=true',
+                        'webpack/hot/only-dev-server',
+                    ]
+                },
+                devtool: 'eval',
+                module: {
+                    rules: [{
+                        enforce: 'pre',
+                        test: /\.(js|jsx)$/,
+                        exclude: /(node_modules)/,
+                        loader: 'jshint-loader'
+                    }, {
+                        test: /\.(js|jsx)$/,
+                        exclude: /(node_modules)/,
+                        loader: 'babel-loader',
+                        options: {
+                            presets: ['es2015', 'stage-1'],
+                            compact: false,
+                            plugins: [
+                                'transform-es2015-arrow-functions',
+                                'transform-decorators-legacy',
+                                'check-es2015-constants',
+                                'transform-es2015-block-scoping'
+                            ]
+                        },
+                    }]
+                },
+                resolve: {
+                    extensions: ['.js', '.jsx']
+                },
+                plugins: []
+            }
+        }
+        const globalConfig = config('webpack', {})
+        globalConfig.browser = config('webpack.browser', {})
+        _.defaultsDeep(globalConfig, defaultConfig)
 
-        globalConfig.options = config('webpack.options', {
-            entry: {
-                hotMiddleware: 'webpack-hot-middleware/client?reload=true'
-            },
-            devtool: "eval",
-            module: { rules: [] },
-            resolve: {},
-            plugins: []
-        })
+        this.config = globalConfig
+        this.config.browser = makeWebpackConfig(globalConfig)
 
-        this.global = globalConfig
-        this.config = makeWebpackConfig(globalConfig)
-
-        this._compiler = Server.Webpack(globalConfig.options)
+        this._compiler = Server.Webpack(globalConfig.browser)
 
         if (config('system.development', true)) {
             // Step 1: Attach the dev middleware to the compiler & the server
@@ -96,8 +127,6 @@ class Server extends System.Module {
 
             // Step 3: Create the development server
             this.createDevServer()
-
-            return this.printSuccess()
         } else {
             const express = System.Server.App.Express
 
@@ -113,18 +142,17 @@ class Server extends System.Module {
                 if (jsonStats.warnings.length > 0) {
                     console.warn(jsonStats.warnings)
                 }
-
-                return this.printSuccess()
             })
 
             $appl.use(express.static(this.buildPath))
         }
 
+        this.printSuccess()
         return done()
     }
 
     printSuccess() {
-        const { hostname, port } = this.global
+        const { hostname, port } = this.config
 
         return console.log(
             `webpack server listening on ${hostname}:${port}`
@@ -135,7 +163,7 @@ class Server extends System.Module {
         return $appl.use(
             Server.WebpackDevMiddleware(this.compiler, {
                 noInfo: false,
-                publicPath: this.config.output.publicPath,
+                publicPath: this.config.browser.output.publicPath,
                 stats: {
                     colors: true,
                     hash: false,
@@ -159,28 +187,12 @@ class Server extends System.Module {
     }
 
     createDevServer() {
-        return new Server.WebpackDevServer(this.compiler, {
-            host: this.global.hostname,
-            port: this.global.port,
-            contentBase: this.assetPath,
-            hot: false,
-            historyApiFallback: false,
-            inline: true,
-            quiet: false,
-            noInfo: false,
-            lazy: true,
-            filename: "main.js",
-            watchOptions: {
-                aggregateTimeout: 300,
-                poll: 1000
-            },
-            publicPath: this.config.output.publicPath,
-            stats: {
-                colors: true
-            }
-        }).listen(
-            this.global.port,
-            this.global.hostname
+        return new Server.WebpackDevServer(
+            this.compiler,
+            this.config.browser.devServer
+        ).listen(
+            this.config.port,
+            this.config.hostname
         )
     }
 

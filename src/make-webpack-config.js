@@ -1,7 +1,7 @@
 const webpack = require('webpack')
 const ExtractTextPlugin = require("extract-text-webpack-plugin")
 const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer')
-const DashboardPlugin = require('webpack-dashboard/plugin')
+const NyanProgressPlugin = require('nyan-progress-webpack-plugin')
 
 const loadersByExtension = require("./loaders-by-extension")
 
@@ -50,13 +50,12 @@ module.exports = function(globalConfig) {
     var plugins = []
 
     plugins.push(
-        new DashboardPlugin(),
         new BundleAnalyzerPlugin({
             // Can be `server`, `static` or `disabled`.
             // In `server` mode analyzer will start HTTP server to show bundle report.
             // In `static` mode single HTML file with bundle report will be generated.
             // In `disabled` mode you can use this plugin to just generate Webpack Stats JSON file by setting `generateStatsFile` to `true`.
-            analyzerMode: 'server',
+            analyzerMode: 'disabled',
             // // Host that will be used in `server` mode to start HTTP server.
             analyzerHost: globalConfig.hostname,
             // // Port that will be used in `server` mode to start HTTP server.
@@ -81,7 +80,8 @@ module.exports = function(globalConfig) {
             statsOptions: null,
             // Log level. Can be 'info', 'warn', 'error' or 'silent'.
             logLevel: 'info'
-        })
+        }),
+        new NyanProgressPlugin()
     )
 
     if (globalConfig.commonsChunk) {
@@ -165,7 +165,7 @@ module.exports = function(globalConfig) {
             hot: false,
             historyApiFallback: false,
             inline: true,
-            quiet: false,
+            quiet: true,
             noInfo: false,
             lazy: true,
             filename: 'main.js',

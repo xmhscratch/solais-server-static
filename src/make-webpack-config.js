@@ -1,7 +1,6 @@
 const webpack = require('webpack')
 const ExtractTextPlugin = require("extract-text-webpack-plugin")
 const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer')
-const NyanProgressPlugin = require('nyan-progress-webpack-plugin')
 
 const loadersByExtension = require("./loaders-by-extension")
 
@@ -81,7 +80,6 @@ module.exports = function(globalConfig) {
             // Log level. Can be 'info', 'warn', 'error' or 'silent'.
             logLevel: 'info'
         }),
-        new NyanProgressPlugin()
     )
 
     if (globalConfig.commonsChunk) {
